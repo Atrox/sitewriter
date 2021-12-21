@@ -14,8 +14,8 @@ It uses the [quick-xml](https://github.com/tafia/quick-xml) so it should be fast
 ### Example
 
 ```rust
-use chrono::prelude::*;
 use sitewriter::{ChangeFreq, UrlEntry, UrlEntryBuilder};
+use time::OffsetDateTime;
 
 let urls = vec![
     UrlEntryBuilder::default()
@@ -26,19 +26,25 @@ let urls = vec![
         loc: "https://edgarluque.com/".parse().unwrap(),
         changefreq: Some(ChangeFreq::Daily),
         priority: Some(1.0),
-        lastmod: Some(Utc::now()),
+        lastmod: Some(OffsetDateTime::now_utc()),
     },
     UrlEntry {
         loc: "https://edgarluque.com/blog".parse().unwrap(),
         changefreq: Some(ChangeFreq::Weekly),
         priority: Some(0.8),
-        lastmod: Some(Utc::now()),
+        lastmod: Some(OffsetDateTime::now_utc()),
     },
     UrlEntry {
         loc: "https://edgarluque.com/blog/sitewriter".parse().unwrap(),
         changefreq: Some(ChangeFreq::Never),
         priority: Some(0.5),
-        lastmod: Some(Utc.ymd(2020, 11, 22).and_hms(15, 10, 15)),
+        lastmod: Some(
+            PrimitiveDateTime::new(
+                Date::from_calendar_date(2020, time::Month::November, 22).unwrap(),
+                Time::from_hms(15, 10, 15).unwrap(),
+            )
+            .assume_utc(),
+        ),
     },
     UrlEntry {
         loc: "https://edgarluque.com/blog/some-future-post"
@@ -47,7 +53,11 @@ let urls = vec![
         changefreq: Some(ChangeFreq::Never),
         priority: Some(0.5),
         lastmod: Some(
-            Utc.from_utc_datetime(&Local.ymd(2020, 12, 5).and_hms(12, 30, 0).naive_utc()),
+            PrimitiveDateTime::new(
+                Date::from_calendar_date(2020, time::Month::December, 5).unwrap(),
+                Time::from_hms(12, 30, 0).unwrap(),
+            )
+            .assume_utc(),
         ),
     },
     // Entity escaping
@@ -58,7 +68,11 @@ let urls = vec![
         changefreq: Some(ChangeFreq::Never),
         priority: Some(0.5),
         lastmod: Some(
-            Utc.from_utc_datetime(&Local.ymd(2020, 12, 5).and_hms(12, 30, 0).naive_utc()),
+            PrimitiveDateTime::new(
+                Date::from_calendar_date(2020, time::Month::December, 5).unwrap(),
+                Time::from_hms(12, 30, 0).unwrap(),
+            )
+            .assume_utc(),
         ),
     },
 ];

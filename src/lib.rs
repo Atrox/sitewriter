@@ -12,8 +12,8 @@
 //! ## Example
 //!
 //! ```rust
-//! use chrono::prelude::*;
 //! use sitewriter::{ChangeFreq, UrlEntry, UrlEntryBuilder};
+//! use time::{Date, OffsetDateTime, PrimitiveDateTime, Time};
 //!
 //! let urls = vec![
 //!     UrlEntryBuilder::default()
@@ -24,19 +24,25 @@
 //!         loc: "https://edgarluque.com/".parse().unwrap(),
 //!         changefreq: Some(ChangeFreq::Daily),
 //!         priority: Some(1.0),
-//!         lastmod: Some(Utc::now()),
+//!         lastmod: Some(OffsetDateTime::now_utc()),
 //!     },
 //!     UrlEntry {
 //!         loc: "https://edgarluque.com/blog".parse().unwrap(),
 //!         changefreq: Some(ChangeFreq::Weekly),
 //!         priority: Some(0.8),
-//!         lastmod: Some(Utc::now()),
+//!         lastmod: Some(OffsetDateTime::now_utc()),
 //!     },
 //!     UrlEntry {
 //!         loc: "https://edgarluque.com/blog/sitewriter".parse().unwrap(),
 //!         changefreq: Some(ChangeFreq::Never),
 //!         priority: Some(0.5),
-//!         lastmod: Some(Utc.ymd(2020, 11, 22).and_hms(15, 10, 15)),
+//!         lastmod: Some(
+//!             PrimitiveDateTime::new(
+//!                 Date::from_calendar_date(2020, time::Month::November, 22).unwrap(),
+//!                 Time::from_hms(15, 10, 15).unwrap(),
+//!             )
+//!             .assume_utc(),
+//!         ),
 //!     },
 //!     UrlEntry {
 //!         loc: "https://edgarluque.com/blog/some-future-post"
@@ -45,7 +51,11 @@
 //!         changefreq: Some(ChangeFreq::Never),
 //!         priority: Some(0.5),
 //!         lastmod: Some(
-//!             Utc.from_utc_datetime(&Local.ymd(2020, 12, 5).and_hms(12, 30, 0).naive_utc()),
+//!             PrimitiveDateTime::new(
+//!                 Date::from_calendar_date(2020, time::Month::December, 5).unwrap(),
+//!                 Time::from_hms(12, 30, 0).unwrap(),
+//!             )
+//!             .assume_utc(),
 //!         ),
 //!     },
 //!     // Entity escaping
@@ -56,7 +66,11 @@
 //!         changefreq: Some(ChangeFreq::Never),
 //!         priority: Some(0.5),
 //!         lastmod: Some(
-//!             Utc.from_utc_datetime(&Local.ymd(2020, 12, 5).and_hms(12, 30, 0).naive_utc()),
+//!             PrimitiveDateTime::new(
+//!                 Date::from_calendar_date(2020, time::Month::December, 5).unwrap(),
+//!                 Time::from_hms(12, 30, 0).unwrap(),
+//!             )
+//!             .assume_utc(),
 //!         ),
 //!     },
 //! ];
@@ -71,15 +85,15 @@
 #![deny(clippy::nursery)]
 #![deny(clippy::all)]
 
-use chrono::{DateTime, SecondsFormat, Utc};
-use derive_builder::Builder;
-use quick_xml::{
-    events::{BytesDecl, BytesEnd, BytesStart, BytesText, Event},
-    Writer,
-};
-use std::{fmt::Display, io::Cursor};
+use std::fmt::Display;
+use std::io::Cursor;
 
+use derive_builder::Builder;
+use quick_xml::events::{BytesDecl, BytesEnd, BytesStart, BytesText, Event};
 pub use quick_xml::Result;
+use quick_xml::Writer;
+use time::format_description::well_known::Rfc3339;
+use time::OffsetDateTime;
 pub use url::Url;
 
 /// How frequently the page is likely to change. This value provides general
@@ -127,7 +141,7 @@ pub struct UrlEntry {
     pub loc: Url,
     /// The date of last modification of the file.
     #[builder(default)]
-    pub lastmod: Option<DateTime<Utc>>,
+    pub lastmod: Option<OffsetDateTime>,
     /// How frequently the page is likely to change.
     #[builder(default)]
     pub changefreq: Option<ChangeFreq>,
@@ -143,7 +157,7 @@ impl UrlEntry {
     #[must_use]
     pub const fn new(
         loc: Url,
-        lastmod: Option<DateTime<Utc>>,
+        lastmod: Option<OffsetDateTime>,
         changefreq: Option<ChangeFreq>,
         priority: Option<f32>,
     ) -> Self {
@@ -193,11 +207,7 @@ where
         write_tag(&mut writer, "loc", entry.loc.as_str())?;
 
         if let Some(lastmod) = &entry.lastmod {
-            write_tag(
-                &mut writer,
-                "lastmod",
-                &lastmod.to_rfc3339_opts(SecondsFormat::Secs, true),
-            )?;
+            write_tag(&mut writer, "lastmod", &lastmod.format(&Rfc3339).unwrap())?;
         }
         if let Some(priority) = &entry.priority {
             write_tag(&mut writer, "priority", &format!("{priority:.1}"))?;
@@ -234,12 +244,12 @@ pub fn generate_str(urls: &[UrlEntry]) -> String {
 
 #[cfg(test)]
 mod tests {
+    use time::OffsetDateTime;
+
     use crate::{generate_str, ChangeFreq, UrlEntry, UrlEntryBuilder};
 
     #[test]
     fn it_works() {
-        use chrono::Utc;
-
         let urls = vec![
             // Builder pattern
             UrlEntryBuilder::default()
@@ -265,7 +275,7 @@ mod tests {
                 loc: "https://domain.com/url".parse().unwrap(),
                 changefreq: Some(ChangeFreq::Daily),
                 priority: Some(0.8),
-                lastmod: Some(Utc::now()),
+                lastmod: Some(OffsetDateTime::now_utc()),
             },
             UrlEntry {
                 loc: "https://domain.com/aa".parse().unwrap(),

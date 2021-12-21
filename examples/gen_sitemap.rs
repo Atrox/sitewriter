@@ -1,5 +1,5 @@
-use chrono::prelude::*;
 use sitewriter::{ChangeFreq, UrlEntry, UrlEntryBuilder};
+use time::{Date, OffsetDateTime, PrimitiveDateTime, Time};
 
 fn main() {
     let urls = vec![
@@ -11,19 +11,25 @@ fn main() {
             loc: "https://edgarluque.com/".parse().unwrap(),
             changefreq: Some(ChangeFreq::Daily),
             priority: Some(1.0),
-            lastmod: Some(Utc::now()),
+            lastmod: Some(OffsetDateTime::now_utc()),
         },
         UrlEntry {
             loc: "https://edgarluque.com/blog".parse().unwrap(),
             changefreq: Some(ChangeFreq::Weekly),
             priority: Some(0.8),
-            lastmod: Some(Utc::now()),
+            lastmod: Some(OffsetDateTime::now_utc()),
         },
         UrlEntry {
             loc: "https://edgarluque.com/blog/sitewriter".parse().unwrap(),
             changefreq: Some(ChangeFreq::Never),
             priority: Some(0.5),
-            lastmod: Some(Utc.with_ymd_and_hms(2020, 12, 5, 15, 30, 0).unwrap()),
+            lastmod: Some(
+                PrimitiveDateTime::new(
+                    Date::from_calendar_date(2020, time::Month::November, 22).unwrap(),
+                    Time::from_hms(15, 10, 15).unwrap(),
+                )
+                .assume_utc(),
+            ),
         },
         UrlEntry {
             loc: "https://edgarluque.com/blog/some-future-post"
@@ -31,7 +37,13 @@ fn main() {
                 .unwrap(),
             changefreq: Some(ChangeFreq::Never),
             priority: Some(0.5),
-            lastmod: Some(Utc.with_ymd_and_hms(2020, 12, 5, 12, 30, 0).unwrap()),
+            lastmod: Some(
+                PrimitiveDateTime::new(
+                    Date::from_calendar_date(2020, time::Month::December, 5).unwrap(),
+                    Time::from_hms(12, 30, 0).unwrap(),
+                )
+                .assume_utc(),
+            ),
         },
         // Entity escaping
         UrlEntry {
@@ -40,7 +52,13 @@ fn main() {
                 .unwrap(),
             changefreq: Some(ChangeFreq::Never),
             priority: Some(0.5),
-            lastmod: Some(Utc.with_ymd_and_hms(2020, 12, 5, 12, 30, 0).unwrap()),
+            lastmod: Some(
+                PrimitiveDateTime::new(
+                    Date::from_calendar_date(2020, time::Month::December, 5).unwrap(),
+                    Time::from_hms(12, 30, 0).unwrap(),
+                )
+                .assume_utc(),
+            ),
         },
     ];
 

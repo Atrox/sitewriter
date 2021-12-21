@@ -2,7 +2,7 @@ use criterion::{black_box, criterion_group, criterion_main, Criterion};
 use sitewriter::{ChangeFreq, UrlEntry, UrlEntryBuilder};
 
 fn benchmark(c: &mut Criterion) {
-    use chrono::Utc;
+    use time::OffsetDateTime;
 
     let urls = vec![
         // Builder pattern
@@ -29,7 +29,7 @@ fn benchmark(c: &mut Criterion) {
             loc: "https://domain.com/url".parse().unwrap(),
             changefreq: Some(ChangeFreq::Daily),
             priority: Some(0.8),
-            lastmod: Some(Utc::now()),
+            lastmod: Some(OffsetDateTime::now_utc()),
         },
         UrlEntry {
             loc: "https://domain.com/aa".parse().unwrap(),
